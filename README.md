@@ -16,7 +16,7 @@ This project ensures transparency, immutability, and trust in the organic food s
 
 Follow these steps to run the complete end-to-end flow in **GitHub Codespaces**.
 
-### 1. Start the Blockchain Network
+1. Start the Blockchain Network
 "bash
 
 cd /workspaces/organic-traceability/fabric-samples/test-network
