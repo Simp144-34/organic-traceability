@@ -152,8 +152,8 @@
             }
         }
 
-        // 4. Generate QR Code on UI
-        function generateUIQR() {
+        // 4. Generate QR Code on UI (UPGRADED WITH BLOCKCHAIN VALIDATION)
+        async function generateUIQR() {
             const batchId = document.getElementById('qrBatchId').value;
             const qrContainer = document.getElementById('qrcodeDisplay');
             
@@ -165,18 +165,37 @@
                 return;
             }
 
-            // The URL the QR code will point to (simulating a consumer scan)
-            const consumerUrl = `https://my-organic-farm.com/verify?id=${batchId}`;
+            // Show a loading message while we check the blockchain
+            qrContainer.innerHTML = "<span class='text-blue-600 text-sm font-bold'>Verifying ID on blockchain... ⏳</span>";
 
-            // Generate the QR code visually
-            new QRCode(qrContainer, {
-                text: consumerUrl,
-                width: 150,
-                height: 150,
-                colorDark : "#000000",
-                colorLight : "#ffffff",
-                correctLevel : QRCode.CorrectLevel.H
-            });
+            try {
+                // Call your API to check if the history exists
+                const res = await fetch(`${API_URL}/history/${batchId}`);
+                const data = await res.json();
+
+                // Logic Check: Does the query succeed AND contain actual data?
+                if(data.success && data.data && data.data.length > 0 && !JSON.stringify(data.data).includes("error")) {
+                    qrContainer.innerHTML = ""; // Clear the loading text
+                    
+                    // The URL the QR code will point to
+                    const consumerUrl = `https://my-organic-farm.com/verify?id=${batchId}`;
+
+                    // Generate the QR code visually
+                    new QRCode(qrContainer, {
+                        text: consumerUrl,
+                        width: 150,
+                        height: 150,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                } else {
+                    // If the blockchain rejects it or finds nothing
+                    qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Error: Batch ID not found on the Blockchain!</span>";
+                }
+            } catch (err) {
+                qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Connection Error. Is the API running?</span>";
+            }
         }
     </script>
 </body>
