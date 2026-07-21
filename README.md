@@ -17,20 +17,20 @@ This project ensures transparency, immutability, and trust in the organic food s
 Follow these steps to run the complete end-to-end flow in **GitHub Codespaces**.
 
 1. Start the Blockchain Network
-"bash
+
 
 cd /workspaces/organic-traceability/fabric-samples/test-network
 ./network.sh down
 ./network.sh up createChannel -c mychannel
 
 2. Deploy the Smart Contract
-"bash
+
 
 
 ./network.sh deployCC -ccn vegcontract -ccp /workspaces/organic-traceability/chaincode/veg-contract -ccl javascript -c mychannel
 
 3. Set Environment Variables (Org1)
-"bash
+
 
 
 export PATH=$PATH:/workspaces/organic-traceability/fabric-samples/bin
@@ -41,23 +41,23 @@ export CORE_PEER_TLS_ROOTCERT_FILE=/workspaces/organic-traceability/fabric-sampl
 export CORE_PEER_MSPCONFIGPATH=/workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/users/Admin@org1.example.com/msp](https://org1.example.com/users/Admin@org1.example.com/msp)
 
 4. Create a New Asset (Farmer)
-"bash
+
 
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /workspaces/organic-traceability/fabric-samples/test-network/organizations/ordererOrganizations/[example.com/tlsca/tlsca.example.com-cert.pem](https://example.com/tlsca/tlsca.example.com-cert.pem) -C mychannel -n vegcontract --peerAddresses localhost:7051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/tlsca/tlsca.org1.example.com-cert.pem](https://org1.example.com/tlsca/tlsca.org1.example.com-cert.pem) --peerAddresses localhost:9051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org2.example.com/tlsca/tlsca.org2.example.com-cert.pem](https://org2.example.com/tlsca/tlsca.org2.example.com-cert.pem) -c '{"function":"addVegetable","Args":["VEG001", "Tomato", "U Ba", "Shan State"]}'
 export CORE_PEER_ADDRESS=localhost:7051
 
 5. Transfer Ownership (Retailer)
-"bash
+
 
 peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /workspaces/organic-traceability/fabric-samples/test-network/organizations/ordererOrganizations/[example.com/tlsca/tlsca.example.com-cert.pem](https://example.com/tlsca/tlsca.example.com-cert.pem) -C mychannel -n vegcontract --peerAddresses localhost:7051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/tlsca/tlsca.org1.example.com-cert.pem](https://org1.example.com/tlsca/tlsca.org1.example.com-cert.pem) --peerAddresses localhost:9051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org2.example.com/tlsca/tlsca.org2.example.com-cert.pem](https://org2.example.com/tlsca/tlsca.org2.example.com-cert.pem) -c '{"function":"transferVegetable","Args":["VEG001", "City Mart"]}'
 
 6. View Product History (Traceability)
-"bash
+
 
 peer chaincode query -C mychannel -n vegcontract -c '{"function":"getVegetableHistory","Args":["VEG001"]}'
 
 7. Generate QR Code for Consumer Scanning
-"Bash
+
 
 cd /workspaces/organic-traceability/qr-app
 node generate-qr.js VEG001
