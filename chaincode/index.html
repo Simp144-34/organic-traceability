@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organic Food Traceability</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 👇 Added a QR Code Library for the UI 👇 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+    <!-- Navbar -->
+    <nav class="bg-green-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">🌱 Organic Traceability Portal</h1>
+            <span class="bg-green-800 px-3 py-1 rounded-full text-sm">Hyperledger Fabric Network</span>
+        </div>
+    </nav>
+
+    <div class="container mx-auto mt-8 p-4 grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Left Column: Actions -->
+        <div class="space-y-8">
+            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-green-500">
+                <h2 class="text-xl font-bold mb-4 text-green-700">1. Register New Crop (Farmer)</h2>
+                <form id="addForm" class="space-y-4">
+                    <input type="text" id="vegId" placeholder="Batch ID (e.g., VEG001)" class="w-full p-2 border rounded" required>
+                    <input type="text" id="vegName" placeholder="Vegetable Name (e.g., Potato)" class="w-full p-2 border rounded" required>
+                    <input type="text" id="farmerName" placeholder="Farmer Name" class="w-full p-2 border rounded" required>
+                    <input type="text" id="location" placeholder="Farm Location" class="w-full p-2 border rounded" required>
+                    <button type="submit" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700 font-bold transition">Register Crop on Blockchain</button>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-blue-500">
+                <h2 class="text-xl font-bold mb-4 text-blue-700">2. Transfer Ownership (Logistics/Retail)</h2>
+                <form id="transferForm" class="space-y-4">
+                    <input type="text" id="transVegId" placeholder="Batch ID (e.g., VEG001)" class="w-full p-2 border rounded" required>
+                    <input type="text" id="newOwner" placeholder="New Owner (e.g., City Mart)" class="w-full p-2 border rounded" required>
+                    <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-bold transition">Transfer Asset</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column: Traceability & History -->
+        <div class="space-y-8">
+            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-purple-500">
+                <h2 class="text-xl font-bold mb-4 text-purple-700">3. Trace Product History</h2>
+                <div class="flex space-x-2">
+                    <input type="text" id="searchId" placeholder="Enter Batch ID to trace..." class="w-full p-2 border rounded">
+                    <button onclick="fetchHistory()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 font-bold transition">Search</button>
+                </div>
+                
+                <div class="mt-6 p-4 bg-gray-100 rounded border min-h-[150px] max-h-[300px] overflow-y-auto">
+                    <h3 class="font-semibold text-gray-600 mb-2">Immutable Ledger History:</h3>
+                    <pre id="historyResult" class="text-sm text-gray-800 whitespace-pre-wrap">Awaiting search...</pre>
+                </div>
+            </div>
+
+            <!-- 👇 NEW BOX: QR CODE GENERATOR 👇 -->
+            <div class="bg-white p-6 rounded-lg shadow-md border-t-4 border-yellow-500">
+                <h2 class="text-xl font-bold mb-4 text-yellow-700">4. Consumer QR Sticker</h2>
+                <p class="text-sm text-gray-600 mb-4">Generate the scannable sticker for the final product packaging.</p>
+                <div class="flex space-x-2 mb-6">
+                    <input type="text" id="qrBatchId" placeholder="Enter Batch ID (e.g., VEG001)" class="w-full p-2 border rounded">
+                    <button onclick="generateUIQR()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 font-bold transition">Generate</button>
+                </div>
+                
+                <div class="flex justify-center items-center p-4 bg-gray-50 border rounded min-h-[200px]">
+                    <!-- The QR Code will appear inside this div -->
+                    <div id="qrcodeDisplay"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript connected to your backend API -->
+    <script>
+        // ⚠️ IMPORTANT: Paste your exact Port 4000 link below!
+        const API_URL = "https://fluffy-disco-r775grvpg7j42xg4p-4000.app.github.dev/api"; 
+
+        // 1. Add Vegetable
+        document.getElementById('addForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('vegId').value;
+            const name = document.getElementById('vegName').value;
+            const owner = document.getElementById('farmerName').value;
+            const location = document.getElementById('location').value;
+
+            alert('Processing transaction on blockchain... Please wait.');
+            
+            try {
+                const res = await fetch(`${API_URL}/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, owner, location })
+                });
+                const data = await res.json();
+                if(data.success) alert('✅ Success: ' + data.message);
+                else alert('❌ Error: ' + data.error);
+            } catch (err) {
+                alert('Connection failed. Ensure API server is running and the port is Public.');
+            }
+        });
+
+        // 2. Transfer Ownership
+        document.getElementById('transferForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('transVegId').value;
+            const newOwner = document.getElementById('newOwner').value;
+
+            alert('Processing transfer on blockchain... Please wait.');
+
+            try {
+                const res = await fetch(`${API_URL}/transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, newOwner })
+                });
+                const data = await res.json();
+                if(data.success) alert('✅ Success: ' + data.message);
+                else alert('❌ Error: ' + data.error);
+            } catch (err) {
+                alert('Connection failed. Ensure API server is running and the port is Public.');
+            }
+        });
+
+        // 3. Fetch History
+        async function fetchHistory() {
+            const id = document.getElementById('searchId').value;
+            const resultBox = document.getElementById('historyResult');
+            
+            if(!id) {
+                resultBox.innerHTML = "<span class='text-red-500'>Please enter a Batch ID.</span>";
+                return;
+            }
+
+            resultBox.innerHTML = "Querying the blockchain... ⏳";
+            
+            try {
+                const res = await fetch(`${API_URL}/history/${id}`);
+                const data = await res.json();
+                
+                if(data.success) {
+                    resultBox.innerHTML = JSON.stringify(data.data, null, 2);
+                } else {
+                    resultBox.innerHTML = "<span class='text-red-500'>Error: " + data.error + "</span>";
+                }
+            } catch (err) {
+                resultBox.innerHTML = "<span class='text-red-500'>Connection failed. Ensure API server is running and the port is Public.</span>";
+            }
+        }
+
+        // 4. Generate QR Code on UI
+        function generateUIQR() {
+            const batchId = document.getElementById('qrBatchId').value;
+            const qrContainer = document.getElementById('qrcodeDisplay');
+            
+            // Clear previous QR code
+            qrContainer.innerHTML = "";
+
+            if(!batchId) {
+                qrContainer.innerHTML = "<span class='text-red-500 text-sm'>Please enter a Batch ID.</span>";
+                return;
+            }
+
+            // The URL the QR code will point to (simulating a consumer scan)
+            const consumerUrl = `https://my-organic-farm.com/verify?id=${batchId}`;
+
+            // Generate the QR code visually
+            new QRCode(qrContainer, {
+                text: consumerUrl,
+                width: 150,
+                height: 150,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+    </script>
+</body>
+</html>
