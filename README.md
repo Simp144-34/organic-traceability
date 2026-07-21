@@ -26,10 +26,12 @@ cd /workspaces/organic-traceability/fabric-samples/test-network
 2. Deploy the Smart Contract
 "bash
 
+
 ./network.sh deployCC -ccn vegcontract -ccp /workspaces/organic-traceability/chaincode/veg-contract -ccl javascript -c mychannel
 
 3. Set Environment Variables (Org1)
 "bash
+
 
 export PATH=$PATH:/workspaces/organic-traceability/fabric-samples/bin
 export FABRIC_CFG_PATH=/workspaces/organic-traceability/fabric-samples/config
