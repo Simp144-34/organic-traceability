@@ -46,7 +46,7 @@ cd /workspaces/organic-traceability
 npx serve .
 **Important: Go to your Codespaces "Ports" tab, change Port 3000 to Public, and click the globe icon to open the web portal.**
 
-## Run Locally (VS Code / Native Machine)
+## 💻 Run Locally (VS Code / Native Machine)
 
 If you are running this project locally outside of Codespaces, please ensure your system meets the enterprise blockchain requirements.
 Prerequisites
@@ -81,7 +81,7 @@ By default, the API server is configured for a Codespaces environment. You must 
 Once dependencies are installed and paths are updated, follow the exact same 3-terminal process outlined in the Codespaces section above.
 
 
-## Supply Chain Flow (Demo Guide)
+## 📖 Supply Chain Flow (Demo Guide)
 
     Farm Level: Open the UI and register a new asset (e.g., VEG001, Potato, Kendix, NewYork).
 
