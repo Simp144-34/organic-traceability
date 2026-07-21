@@ -1,80 +1,92 @@
-# 🌱 Organic Food Traceability via Hyperledger Fabric
+# 🌱 Organic Food Traceability System
 
-A Blockchain-based supply chain solution to track and trace organic vegetables from the farmer to the consumer using Hyperledger Fabric. 
+An enterprise-grade supply chain tracking system built on **Hyperledger Fabric**. This application ensures the absolute authenticity of organic vegetables by securely tracking them from the original farm to the supermarket shelves. The data is immutable, meaning once a crop is registered, its history can never be altered or faked.
 
-This project ensures transparency, immutability, and trust in the organic food supply chain by recording every transfer of ownership on a distributed ledger.
+## 🚀 Features
 
-## ✨ Features (Including New Updates)
-1. **Asset Creation (`addVegetable`)**: Register a new batch of vegetables with details like origin, farmer name, and timestamp.
-2. **Asset Transfer (`transferVegetable`)**: Transfer the ownership of the vegetables securely across the supply chain (e.g., Farmer -> Logistics -> Retailer).
-3. **Traceability History (`getVegetableHistory`) [NEW 🚀]**: Fetch the complete, immutable lifecycle of the product to see every hand it has passed through.
-4. **Consumer QR Code (`generate-qr.js`) [NEW 📱]**: Generates a scannable QR code in the terminal that simulates the consumer-facing app, allowing buyers to scan and view the product's origin.
+This system is divided into four main real-world operations, all accessible via a unified web interface:
+
+1. **Register New Crop (Farmer):** Agricultural workers create the initial unalterable asset on the blockchain, logging the Batch ID, Crop Name, Farmer Name, and Location.
+2. **Transfer Ownership (Logistics/Retail):** As the crop moves through the supply chain, the blockchain tracks the chain of custody, securely updating the current owner (e.g., to a Supermarket).
+3. **Trace Product History (Auditors):** Supply chain directors and auditors can query the ledger to view the complete, timestamped history of any batch.
+4. **Consumer QR Sticker (End User):** Generates a scannable QR code for the physical product packaging. **Includes built-in blockchain validation** to ensure QR codes cannot be generated for fake or non-existent Batch IDs.
+
+## 🏗️ Architecture & Tech Stack
+
+* **Blockchain Network:** Hyperledger Fabric (Test Network)
+* **Smart Contract (Chaincode):** JavaScript / Node.js
+* **Middleware API:** Express.js & Node.js (Port 4000)
+* **Frontend UI:** HTML5, Vanilla JavaScript, Tailwind CSS, QRCode.js (Port 3000)
 
 ---
 
-## 🚀 How to Run the Demo (Step-by-Step)
+## 🛠️ How to Run the Project (GitHub Codespaces)
 
-Follow these steps to run the complete end-to-end flow in **GitHub Codespaces**.
+To run the full environment, you will need to open **three separate terminals** in your Codespace to handle the Blockchain, the API, and the UI.
 
-1. Start the Blockchain Network
+## Step 1 : Start the Hyperledger Fabric Network
 
-
+Open **Terminal 1** and run the following commands to clear old data, start the network, create the channel, and deploy the smart contract:
 cd /workspaces/organic-traceability/fabric-samples/test-network
 ./network.sh down
 ./network.sh up createChannel -c mychannel
-
-2. Deploy the Smart Contract
-
-
-
 ./network.sh deployCC -ccn vegcontract -ccp /workspaces/organic-traceability/chaincode/veg-contract -ccl javascript -c mychannel
 
-3. Set Environment Variables (Org1)
+## Step 2: Start the API Middleware Server
+
+Open Terminal 2 and start the Node.js server that translates web requests into blockchain commands.
+cd /workspaces/organic-traceability/api-server
+node server.js
+**Important: Go to your Codespaces "Ports" tab and ensure Port 4000 is set to Public.**
+
+## Step 3: Start the Web UI
+
+Open Terminal 3 and serve the frontend web page.
+cd /workspaces/organic-traceability
+npx serve .
+**Important: Go to your Codespaces "Ports" tab, change Port 3000 to Public, and click the globe icon to open the web portal.**
+
+## Run Locally (VS Code / Native Machine)
+
+If you are running this project locally outside of Codespaces, please ensure your system meets the enterprise blockchain requirements.
+Prerequisites
+
+    Windows Users: Must install and run via WSL2 (Ubuntu).
+
+    Mac/Linux Users: Native terminal is supported.
+
+    Required Software: Docker Desktop, Node.js (v18+), Git.
+
+## Step 1: Install Fabric Binaries
+
+Hyperledger Fabric requires specific binaries and Docker images to run locally. Open your terminal in the root project folder and run:
+
+curl -sSLO [https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh](https://raw.githubusercontent.com/hyperledger/fabric/main/scripts/install-fabric.sh) && chmod +x install-fabric.sh
+./install-fabric.sh docker samples binary
+
+## Step 2: Update Hardcoded Paths
+
+By default, the API server is configured for a Codespaces environment. You must update the file paths for your local machine:
+
+    Open api-server/server.js.
+
+    Find all instances of /workspaces/organic-traceability/...
+
+    Replace them with the absolute path to where you cloned this repository on your local computer (e.g., /home/username/projects/organic-traceability/...).
+
+    Update the API_URL inside index.html from the Codespace URL to http://localhost:4000/api.
+
+## Step 3: Run the Terminals
+
+Once dependencies are installed and paths are updated, follow the exact same 3-terminal process outlined in the Codespaces section above.
 
 
+## Supply Chain Flow (Demo Guide)
 
-export PATH=$PATH:/workspaces/organic-traceability/fabric-samples/bin
-export FABRIC_CFG_PATH=/workspaces/organic-traceability/fabric-samples/config
-export CORE_PEER_TLS_ENABLED=true
-export CORE_PEER_LOCALMSPID="Org1MSP"
-export CORE_PEER_TLS_ROOTCERT_FILE=/workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/peers/peer0.org1.example.com/tls/ca.crt](https://org1.example.com/peers/peer0.org1.example.com/tls/ca.crt)
-export CORE_PEER_MSPCONFIGPATH=/workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/users/Admin@org1.example.com/msp](https://org1.example.com/users/Admin@org1.example.com/msp)
+    Farm Level: Open the UI and register a new asset (e.g., VEG001, Potato, Kendix, NewYork).
 
-4. Create a New Asset (Farmer)
+    Retail Level: Use the Transfer window to change the owner of VEG001 to City Mart.
 
+    Verification: Use the History Search to view the immutable ledger data for VEG001.
 
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /workspaces/organic-traceability/fabric-samples/test-network/organizations/ordererOrganizations/[example.com/tlsca/tlsca.example.com-cert.pem](https://example.com/tlsca/tlsca.example.com-cert.pem) -C mychannel -n vegcontract --peerAddresses localhost:7051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/tlsca/tlsca.org1.example.com-cert.pem](https://org1.example.com/tlsca/tlsca.org1.example.com-cert.pem) --peerAddresses localhost:9051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org2.example.com/tlsca/tlsca.org2.example.com-cert.pem](https://org2.example.com/tlsca/tlsca.org2.example.com-cert.pem) -c '{"function":"addVegetable","Args":["VEG001", "Tomato", "U Ba", "Shan State"]}'
-export CORE_PEER_ADDRESS=localhost:7051
-
-5. Transfer Ownership (Retailer)
-
-
-peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile /workspaces/organic-traceability/fabric-samples/test-network/organizations/ordererOrganizations/[example.com/tlsca/tlsca.example.com-cert.pem](https://example.com/tlsca/tlsca.example.com-cert.pem) -C mychannel -n vegcontract --peerAddresses localhost:7051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org1.example.com/tlsca/tlsca.org1.example.com-cert.pem](https://org1.example.com/tlsca/tlsca.org1.example.com-cert.pem) --peerAddresses localhost:9051 --tlsRootCertFiles /workspaces/organic-traceability/fabric-samples/test-network/organizations/peerOrganizations/[org2.example.com/tlsca/tlsca.org2.example.com-cert.pem](https://org2.example.com/tlsca/tlsca.org2.example.com-cert.pem) -c '{"function":"transferVegetable","Args":["VEG001", "City Mart"]}'
-
-6. View Product History (Traceability)
-
-
-peer chaincode query -C mychannel -n vegcontract -c '{"function":"getVegetableHistory","Args":["VEG001"]}'
-
-7. Generate QR Code for Consumer Scanning
-
-
-cd /workspaces/organic-traceability/qr-app
-node generate-qr.js VEG001
-
-then Scan the generated Qr with your mobile phone to simulate the consumer verification process!
-
-> **📝 Note on the QR Code & UI:** 
-> Please note that this current phase of the project strictly focuses on the **Backend Blockchain Infrastructure** and Smart Contracts. 
-> There is no Frontend Web UI built yet. The generated QR code currently points to a simulated URL (`https://my-organic-farm.com/...`) to demonstrate the consumer experience concept. Building a React/Next.js frontend application to connect with this blockchain network is planned as a future enhancement.
-
-Common Issues & Troubleshooting
-
-    peer: command not found: Ensure you have exported the PATH variable (Step 3).
-
-    connection refused (localhost:7051): The Docker containers are stopped. Run ./network.sh down and then ./network.sh up createChannel -c mychannel to restart the network cleanly.
-
-    
-cd /workspaces/organic-traceability/fabric-samples/test-network
-./network.sh down
-./network.sh up createChannel -c mychannel
+    Consumer: Generate the QR Code for VEG001. Scan it with a mobile phone to see the consumer-facing verification process. (Note: The system will securely reject invalid IDs).
