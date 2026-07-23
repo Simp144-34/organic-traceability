@@ -126,7 +126,7 @@
             }
         });
 
-        // 3. Fetch History
+       // 3. Fetch History (UPDATED: Checks for empty unregistered data)
         async function fetchHistory() {
             const id = document.getElementById('searchId').value;
             const resultBox = document.getElementById('historyResult');
@@ -143,7 +143,13 @@
                 const data = await res.json();
                 
                 if(data.success) {
-                    resultBox.innerHTML = JSON.stringify(data.data, null, 2);
+                    // 👇 FIX 1: If the blockchain returns an empty array [], show an error message
+                    if (data.data.length === 0) {
+                        resultBox.innerHTML = `<span class='text-red-600 font-bold'>❌ There is no registration record for Batch ID: ${id}</span>`;
+                    } else {
+                        // Otherwise, show the actual history data
+                        resultBox.innerHTML = JSON.stringify(data.data, null, 2);
+                    }
                 } else {
                     resultBox.innerHTML = "<span class='text-red-500'>Error: " + data.error + "</span>";
                 }
@@ -152,7 +158,7 @@
             }
         }
 
-        // 4. Generate QR Code on UI (UPGRADED WITH BLOCKCHAIN VALIDATION)
+        // 4. Generate QR Code on UI (UPDATED: Shows real farmer & company data)
         async function generateUIQR() {
             const batchId = document.getElementById('qrBatchId').value;
             const qrContainer = document.getElementById('qrcodeDisplay');
@@ -165,33 +171,40 @@
                 return;
             }
 
-            // Show a loading message while we check the blockchain
             qrContainer.innerHTML = "<span class='text-blue-600 text-sm font-bold'>Verifying ID on blockchain... ⏳</span>";
 
             try {
-                // Call your API to check if the history exists
                 const res = await fetch(`${API_URL}/history/${batchId}`);
                 const data = await res.json();
 
                 // Logic Check: Does the query succeed AND contain actual data?
                 if(data.success && data.data && data.data.length > 0 && !JSON.stringify(data.data).includes("error")) {
-                    qrContainer.innerHTML = ""; // Clear the loading text
+                    qrContainer.innerHTML = ""; 
                     
-                    // The URL the QR code will point to
-                    const consumerUrl = `https://my-organic-farm.com/verify?id=${batchId}`;
+                    // 👇 FIX 2: Extract the latest real-world data from the blockchain history
+                    // We grab the last transaction in the history array to get the current status
+                    const latestTransaction = data.data[data.data.length - 1];
+                    const vegInfo = latestTransaction.Value || latestTransaction.Record || latestTransaction;
+                    
+                    // Format the text that will be embedded inside the QR code
+                    const qrTextData = `🌱 Organic Traceability 🌱\n` +
+                                       `Batch ID: ${batchId}\n` +
+                                       `Crop/Vegetable: ${vegInfo.name || 'Unknown'}\n` +
+                                       `Farmer Location: ${vegInfo.location || 'Unknown'}\n` +
+                                       `Current Company: ${vegInfo.owner || 'Unknown'}\n` +
+                                       `Transition Date: ${new Date().toLocaleDateString()}`;
 
-                    // Generate the QR code visually
+                    // Generate the QR code with the actual text data instead of a link
                     new QRCode(qrContainer, {
-                        text: consumerUrl,
-                        width: 150,
-                        height: 150,
+                        text: qrTextData,
+                        width: 180, // Made it slightly larger to hold the text cleanly
+                        height: 180,
                         colorDark : "#000000",
                         colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.H
+                        correctLevel : QRCode.CorrectLevel.L // Low error correction allows more text to fit
                     });
                 } else {
-                    // If the blockchain rejects it or finds nothing
-                    qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Error: Batch ID not found on the Blockchain!</span>";
+                    qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Error: Batch ID not found or not registered!</span>";
                 }
             } catch (err) {
                 qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Connection Error. Is the API running?</span>";
