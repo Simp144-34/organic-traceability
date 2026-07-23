@@ -79,7 +79,7 @@
     <script>
         // ⚠️ IMPORTANT: Paste your exact Port 4000 link below!
         const API_URL = "https://fluffy-disco-r775grvpg7j42xg4p-4000.app.github.dev/api"; 
-
+        
         // 1. Add Vegetable
         document.getElementById('addForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -158,12 +158,11 @@
             }
         }
 
-        // 4. Generate QR Code on UI (UPDATED: Shows real farmer & company data)
+       // 4. Generate QR Code on UI (Final Fix: Exact JSON Mapping)
         async function generateUIQR() {
             const batchId = document.getElementById('qrBatchId').value;
             const qrContainer = document.getElementById('qrcodeDisplay');
             
-            // Clear previous QR code
             qrContainer.innerHTML = "";
 
             if(!batchId) {
@@ -177,37 +176,37 @@
                 const res = await fetch(`${API_URL}/history/${batchId}`);
                 const data = await res.json();
 
-                // Logic Check: Does the query succeed AND contain actual data?
                 if(data.success && data.data && data.data.length > 0 && !JSON.stringify(data.data).includes("error")) {
                     qrContainer.innerHTML = ""; 
                     
-                    // 👇 FIX 2: Extract the latest real-world data from the blockchain history
-                    // We grab the last transaction in the history array to get the current status
-                    const latestTransaction = data.data[data.data.length - 1];
-                    const vegInfo = latestTransaction.Value || latestTransaction.Record || latestTransaction;
+                    let historyArray = typeof data.data === 'string' ? JSON.parse(data.data) : data.data;
                     
-                    // Format the text that will be embedded inside the QR code
-                    const qrTextData = `🌱 Organic Traceability 🌱\n` +
-                                       `Batch ID: ${batchId}\n` +
-                                       `Crop/Vegetable: ${vegInfo.name || 'Unknown'}\n` +
-                                       `Farmer Location: ${vegInfo.location || 'Unknown'}\n` +
-                                       `Current Company: ${vegInfo.owner || 'Unknown'}\n` +
-                                       `Transition Date: ${new Date().toLocaleDateString()}`;
+                    // 👇 FIX 1: Sort by timestamp so we ALWAYS grab the absolute newest update
+                    historyArray.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    let latestTx = historyArray[0];
+                    
+                    // 👇 FIX 2: Target your exact lowercase "record" property
+                    let vegInfo = latestTx.record || {};
+                    
+                    // 👇 FIX 3: Map exactly to your JSON keys (name, location, owner)
+                    const qrTextData = `Batch ID: ${batchId}\n` +
+                                       `Crop: ${vegInfo.name || 'Unknown'}\n` +
+                                       `Location: ${vegInfo.location || 'Unknown'}\n` +
+                                       `Owner: ${vegInfo.owner || 'Unknown'}\n` +
+                                       `Date: ${new Date().toLocaleDateString()}`;
 
-                    // Generate the QR code with the actual text data instead of a link
                     new QRCode(qrContainer, {
                         text: qrTextData,
-                        width: 180, // Made it slightly larger to hold the text cleanly
+                        width: 180,
                         height: 180,
                         colorDark : "#000000",
-                        colorLight : "#ffffff",
-                        correctLevel : QRCode.CorrectLevel.L // Low error correction allows more text to fit
+                        colorLight : "#ffffff"
                     });
                 } else {
-                    qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Error: Batch ID not found or not registered!</span>";
+                    qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Error: Batch ID not found!</span>";
                 }
             } catch (err) {
-                qrContainer.innerHTML = "<span class='text-red-600 font-bold'>❌ Connection Error. Is the API running?</span>";
+                qrContainer.innerHTML = `<span class='text-red-600 font-bold'>❌ QR Error: ${err.message}</span>`;
             }
         }
     </script>
